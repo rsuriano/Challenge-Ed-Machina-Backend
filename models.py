@@ -1,7 +1,7 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, Table
 from sqlalchemy.orm import relationship
 
-from .db_conn import Base
+from db_conn import Base
 
 # Association tables
 
@@ -14,7 +14,7 @@ students_degrees = Table(
 
 subjects_degrees = Table(
     "subjects_degrees",
-    Base.metadata,
+    Base.metadata, 
     Column("subject_id", ForeignKey("subject.id"), primary_key=True),
     Column("degree_id", ForeignKey("degree.id"), primary_key = True)
 )
@@ -40,27 +40,27 @@ class Student(Base):
     phone           =   Column(Integer)
     enrollment_year =   Column(Integer)
 
-    degrees         =   relationship("Degree", secondary=students_degrees, back_populates="students") 
+    degrees         =   relationship("Degree", secondary="students_degrees", back_populates="students") 
     subjects        =   relationship("StudentsSubjects", back_populates="student")
 
 
-class Subject():
+class Subject(Base):
     __tablename__ = "subject"
 
     id          =   Column(Integer, primary_key=True, index=True)
     name        =   Column(String, index=True)
     total_hours =   Column(Integer)
 
-    degrees     =   relationship("Degree", secondary=subjects_degrees, back_populates="subjects")
+    degrees     =   relationship("Degree", secondary="subjects_degrees", back_populates="subjects")
     students    =   relationship("StudentsSubjects", back_populates="subject")
 
 
-class Degree():
+class Degree(Base):
     __tablename__ = "degree"
 
     id              =   Column(Integer, primary_key=True, index=True)
     name            =   Column(String, index=True)
     length_years    =   Column(Integer)
 
-    students        =   relationship("Student", secondary=students_degrees, back_populates="degrees")
-    subjects        =   relationship("Subject", secondary=subjects_degrees, back_populates="degrees")
+    students        =   relationship("Student", secondary="students_degrees", back_populates="degrees")
+    subjects        =   relationship("Subject", secondary="subjects_degrees", back_populates="degrees")

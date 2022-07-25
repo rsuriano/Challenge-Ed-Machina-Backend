@@ -1,5 +1,5 @@
 '''Data creation and retrieval'''
-from psycopg2 import IntegrityError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 from fastapi import HTTPException
 import models, schemas
@@ -105,7 +105,7 @@ def create_lead(db: Session, lead: schemas.LeadCreate):
             db.commit()
             db.refresh(db_lead)
             return db_lead
-            
+
         # Catch duplicated entry
         except IntegrityError:
             raise HTTPException(status_code=400, detail='Lead already exists.')

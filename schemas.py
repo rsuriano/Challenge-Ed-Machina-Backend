@@ -67,7 +67,7 @@ class Degree(DegreeBase):
 
 class Subject(SubjectBase):
     id: int
-    degree: DegreeBase
+    degree: Degree
 
 class Student(StudentBase):
     id: int

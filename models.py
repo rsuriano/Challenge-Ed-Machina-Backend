@@ -6,19 +6,16 @@ from db_conn import Base
 
 # Main entities
 
-class Student(Base):
-    '''Student: represents a Student that is enrolled to one or several Degrees.'''
-    __tablename__ = "student"
+class Degree(Base):
+    '''Degree: represents a major or course that has many Subjects and enrolled Students.'''
+    __tablename__ = "degree"
 
     id              =   Column(Integer, primary_key=True, index=True)
-    name            =   Column(String, index=True)
-    email           =   Column(String, unique=True, index=True)
-    address         =   Column(String)
-    phone           =   Column(Integer)
-    
-    degrees         =   relationship("Enrollment", back_populates="student")
-    subjects        =   relationship("Lead", back_populates="student")
+    name            =   Column(String, unique=True, index=True)
+    length_years    =   Column(Integer)
 
+    subjects        =   relationship("Subject", back_populates="degree")
+    students        =   relationship("Enrollment", back_populates="degree")
 
 class Subject(Base):
     '''Subject: represents a Subject that is part of a Degree.'''
@@ -32,17 +29,18 @@ class Subject(Base):
     degree      =   relationship("Degree", back_populates="subjects")
     students    =   relationship("Lead", back_populates="subject")
 
-
-class Degree(Base):
-    '''Degree: represents a major or course that has many Subjects and enrolled Students.'''
-    __tablename__ = "degree"
+class Student(Base):
+    '''Student: represents a Student that is enrolled to one or several Degrees.'''
+    __tablename__ = "student"
 
     id              =   Column(Integer, primary_key=True, index=True)
-    name            =   Column(String, unique=True, index=True)
-    length_years    =   Column(Integer)
-
-    subjects        =   relationship("Subject", back_populates="degree")
-    students        =   relationship("Enrollment", back_populates="degree")
+    name            =   Column(String, index=True)
+    email           =   Column(String, unique=True, index=True)
+    address         =   Column(String)
+    phone           =   Column(Integer)
+    
+    degrees         =   relationship("Enrollment", back_populates="student")
+    subjects        =   relationship("Lead", back_populates="student")
 
 
 # Association tables

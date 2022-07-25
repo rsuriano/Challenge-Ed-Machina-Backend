@@ -1,66 +1,72 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Table
+'''Database models and associations'''
+from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import relationship
 
 from db_conn import Base
 
-# Association tables
-
-students_degrees = Table(
-    "students_degrees",
-    Base.metadata,
-    Column("student_id", ForeignKey("student.id"), primary_key=True),
-    Column("degree_id", ForeignKey("degree.id"), primary_key=True)
-)
-
-subjects_degrees = Table(
-    "subjects_degrees",
-    Base.metadata, 
-    Column("subject_id", ForeignKey("subject.id"), primary_key=True),
-    Column("degree_id", ForeignKey("degree.id"), primary_key = True)
-)
-
-class StudentsSubjects(Base):
-    __tablename__ = "students_subjects"
-
-    student_id      =   Column(ForeignKey("student.id"), primary_key=True)
-    subject_id      =   Column(ForeignKey("subject.id"), primary_key=True)
-    attempt_number  =   Column(Integer)
-    student         =   relationship("Student", back_populates="subjects")
-    subject         =   relationship("Subject", back_populates="students")
-
-
-# Main classes
+# Main entities
 
 class Student(Base):
+    '''Student: represents a Student that is enrolled to one or several Degrees.'''
     __tablename__ = "student"
 
     id              =   Column(Integer, primary_key=True, index=True)
     name            =   Column(String, index=True)
     email           =   Column(String, unique=True, index=True)
+    address         =   Column(String)
     phone           =   Column(Integer)
-    enrollment_year =   Column(Integer)
-
-    degrees         =   relationship("Degree", secondary="students_degrees", back_populates="students") 
-    subjects        =   relationship("StudentsSubjects", back_populates="student")
+    
+    degrees         =   relationship("Enrollment", back_populates="student")
+    subjects        =   relationship("Lead", back_populates="student")
 
 
 class Subject(Base):
+    '''Subject: represents a Subject that is part of a Degree.'''
     __tablename__ = "subject"
 
     id          =   Column(Integer, primary_key=True, index=True)
-    name        =   Column(String, index=True)
+    name        =   Column(String, unique=True, index=True)
     total_hours =   Column(Integer)
+    degree_id   =   Column(Integer, ForeignKey("degree.id"))
 
-    degrees     =   relationship("Degree", secondary="subjects_degrees", back_populates="subjects")
-    students    =   relationship("StudentsSubjects", back_populates="subject")
+    degree      =   relationship("Degree", back_populates="subjects")
+    students    =   relationship("Lead", back_populates="subject")
 
 
 class Degree(Base):
+    '''Degree: represents a major or course that has many Subjects and enrolled Students.'''
     __tablename__ = "degree"
 
     id              =   Column(Integer, primary_key=True, index=True)
-    name            =   Column(String, index=True)
+    name            =   Column(String, unique=True, index=True)
     length_years    =   Column(Integer)
 
-    students        =   relationship("Student", secondary="students_degrees", back_populates="degrees")
-    subjects        =   relationship("Subject", secondary="subjects_degrees", back_populates="degrees")
+    subjects        =   relationship("Subject", back_populates="degree")
+    students        =   relationship("Enrollment", back_populates="degree")
+
+
+# Association tables
+
+class Enrollment(Base):
+    '''Enrollment: association object between a Student and a Degree.'''
+    __tablename__ = "student_degree"
+
+    student_id      =   Column(Integer, ForeignKey("student.id"), primary_key=True, index=True)
+    degree_id       =   Column(Integer, ForeignKey("degree.id"), primary_key=True, index=True)
+    enrollment_year =   Column(Integer)
+
+    student         =   relationship("Student", back_populates="degrees")
+    degree          =   relationship("Degree", back_populates="students")
+
+class Lead(Base):
+    ''' Lead: association object between a Student and a Subject.'''
+    __tablename__ = "student_subject"
+    __table_args__ = (UniqueConstraint('student_id', 'subject_id'), )
+
+    id              =   Column(Integer, primary_key=True, index=True)
+    student_id      =   Column(ForeignKey("student.id"), index=True)
+    subject_id      =   Column(ForeignKey("subject.id"), index=True)
+    attempt_number  =   Column(Integer)
+
+    student         =   relationship("Student", back_populates="subjects")
+    subject         =   relationship("Subject", back_populates="students")

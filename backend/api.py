@@ -76,6 +76,3 @@ def get_lead_by_id(lead_id: int, db: Session = Depends(get_db)):
     if db_lead is None:
         raise HTTPException(status_code=404, detail="Lead not found")
     return db_lead
-
-if __name__ == '__main__':
-    uvicorn.run(app, port=8000, host='0.0.0.0')

@@ -1,6 +1,23 @@
 '''Schemas for API validation'''
+from typing import Any
 from pydantic import BaseModel
+from pydantic.utils import GetterDict
 
+
+'''Custom Getters for Association Objects'''
+class StudentSubjectGetter(GetterDict):
+    def get(self, key:str, default: Any = None) -> Any:
+        if key in {'id', 'name', 'length_years'}:
+            return getattr(self._obj.subject, key)
+        else:
+            return super(StudentSubjectGetter, self).get(key, default)
+
+class StudentSubjectGetter(GetterDict):
+    def get(self, key:str, default: Any = None) -> Any:
+        if key in {'id', 'name', 'total_hours'}:
+            return getattr(self._obj.subject, key)
+        else:
+            return super(StudentSubjectGetter, self).get(key, default)
 
 '''Base schemas'''
 
@@ -27,13 +44,13 @@ class StudentBase(BaseModel):
     class Config:
         orm_mode = True
 
-class EnrollmentBase(BaseModel):
+class StudentDegreeBase(BaseModel):
     enrollment_year: int
 
     class Config:
         orm_mode = True
 
-class LeadBase(BaseModel):
+class StudentSubjectBase(BaseModel):
     attempt_number: int
 
     class Config:
@@ -51,13 +68,15 @@ class SubjectCreate(SubjectBase):
 class StudentCreate(StudentBase):
     pass
 
-class EnrollmentCreate(EnrollmentBase):
-    student_id: int
+class StudentDegreeCreate(StudentDegreeBase):
     degree_id: int
 
-class LeadCreate(LeadBase):
-    student_id: int
+class StudentSubjectCreate(StudentSubjectBase):
     subject_id: int
+
+class LeadCreate(StudentCreate):
+    degrees: list[StudentDegreeCreate]
+    subjects: list[StudentSubjectCreate]
 
 
 '''Base schemas'''
@@ -72,11 +91,12 @@ class Subject(SubjectBase):
 class Student(StudentBase):
     id: int
 
-class Enrollment(EnrollmentBase):
-    student: Student
+class StudentDegree(StudentDegreeBase):
     degree: Degree
 
-class Lead(LeadBase):
-    id: int
-    student: Student
+class StudentSubject(StudentSubjectBase):
     subject: Subject
+
+class Lead(Student):
+    degrees: list[StudentDegree]
+    subjects: list[StudentSubject]

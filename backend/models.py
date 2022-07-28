@@ -1,5 +1,5 @@
 '''Database models and associations'''
-from sqlalchemy import Column, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from db_conn import Base
@@ -15,7 +15,7 @@ class Degree(Base):
     length_years    =   Column(Integer)
 
     subjects        =   relationship("Subject", back_populates="degree")
-    students        =   relationship("Enrollment", back_populates="degree")
+    students        =   relationship("StudentDegree", back_populates="degree")
 
 class Subject(Base):
     '''Subject: represents a Subject that is part of a Degree.'''
@@ -27,7 +27,7 @@ class Subject(Base):
     degree_id   =   Column(Integer, ForeignKey("degree.id"))
 
     degree      =   relationship("Degree", back_populates="subjects")
-    students    =   relationship("Lead", back_populates="subject")
+    students    =   relationship("StudentSubject", back_populates="subject")
 
 class Student(Base):
     '''Student: represents a Student that is enrolled to one or several Degrees.'''
@@ -39,14 +39,14 @@ class Student(Base):
     address         =   Column(String)
     phone           =   Column(Integer)
     
-    degrees         =   relationship("Enrollment", back_populates="student")
-    subjects        =   relationship("Lead", back_populates="student")
+    degrees         =   relationship("StudentDegree", back_populates="student")
+    subjects        =   relationship("StudentSubject", back_populates="student")
 
 
 # Association tables
 
-class Enrollment(Base):
-    '''Enrollment: association object between a Student and a Degree.'''
+class StudentDegree(Base):
+    '''StudentDegree: association object between a Student and a Degree.'''
     __tablename__ = "student_degree"
 
     student_id      =   Column(Integer, ForeignKey("student.id"), primary_key=True, index=True)
@@ -56,14 +56,12 @@ class Enrollment(Base):
     student         =   relationship("Student", back_populates="degrees")
     degree          =   relationship("Degree", back_populates="students")
 
-class Lead(Base):
-    ''' Lead: association object between a Student and a Subject.'''
+class StudentSubject(Base):
+    ''' StudentSubject: association object between a Student and a Subject.'''
     __tablename__ = "student_subject"
-    __table_args__ = (UniqueConstraint('student_id', 'subject_id'), )
 
-    id              =   Column(Integer, primary_key=True, index=True)
-    student_id      =   Column(ForeignKey("student.id"), index=True)
-    subject_id      =   Column(ForeignKey("subject.id"), index=True)
+    student_id      =   Column(ForeignKey("student.id"), primary_key=True, index=True)
+    subject_id      =   Column(ForeignKey("subject.id"), primary_key=True, index=True)
     attempt_number  =   Column(Integer)
 
     student         =   relationship("Student", back_populates="subjects")

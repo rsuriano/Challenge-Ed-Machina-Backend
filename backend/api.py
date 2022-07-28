@@ -53,7 +53,7 @@ def get_leads(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
 
 @app.get("/leads/{lead_id}", response_model=schemas.Lead, tags=["leads"])
 def get_lead_by_id(lead_id: int, db: Session = Depends(get_db)):
-    db_lead = crud.get_student_by_id(db, lead_id=lead_id)
+    db_lead = crud.get_student_by_id(db, student_id=lead_id)
     if db_lead is None:
         raise HTTPException(status_code=404, detail="Lead not found")
     return db_lead

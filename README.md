@@ -83,6 +83,7 @@ La respuesta es una lista de `Subjects`, en donde el formato de cada item es:
 | name          | Nombre de la materia              | `string` |
 | total_hours   | Duración de la materia en horas   |  `int`   |
 | degree        | Carrera a la que pertenece        | `Degree` |
+| id            | Identificador único de la materia |  `int`   |
 
 Ejemplo de respuesta:
 ```python
@@ -153,8 +154,8 @@ Ejemplo de datos para registrar un lead:
   "phone": 1123581321,
   "degrees": [
     {
-      "degree_id": 2
-      "enrollment_year": 2014,
+      "degree_id": 2,
+      "enrollment_year": 2014
     }
   ],
   "subjects": [
@@ -187,6 +188,7 @@ El formato de respuesta es una lista de `Leads`, en donde cada lead tiene el sig
 | email   | Email del estudiante       |  `string`   |
 | address     | Dirección del estudiante   |  `string`   |
 | phone     | Teléfono del estudiante   |  `int`   |
+| id            | Identificador único del estudiante |  `int`   |
 | degrees     | Lista de carreras del estudiante   |  `list[StudentDegree]`   |
 | subjects     | Lista de materias del estudiante   |  `list[StudentSubject]`   |
 
@@ -298,6 +300,7 @@ El formato de respuesta es un objeto `Lead`, con el mismo formato que en la secc
 | email   | Email del estudiante       |  `string`   |
 | address     | Dirección del estudiante   |  `string`   |
 | phone     | Teléfono del estudiante   |  `int`   |
+| id            | Identificador único del estudiante |  `int`   |
 | degrees     | Lista de carreras del estudiante   |  `list[StudentDegree]`   |
 | subjects     | Lista de materias del estudiante   |  `list[StudentSubject]`   |
 

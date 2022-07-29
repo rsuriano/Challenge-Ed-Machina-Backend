@@ -12,6 +12,7 @@ Para correr el proyecto, sobre el directorio se deben correr los siguientes coma
 ```
 
 Los endpoints de la API y esquemas asociados se encontrarán en la url [localhost:8000/docs](http://localhost:8000/docs).
+La base de datos se populará automáticamente mediante el servicio `dataloader`.
 
 ## Uso
 

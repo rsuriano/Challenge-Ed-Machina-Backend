@@ -64,19 +64,22 @@ def create_lead(db: Session, lead: schemas.LeadCreate):
             raise HTTPException(status_code=400, \
                 detail=f'Degree id {student_degree.degree_id} not found.')
 
-        # Save the Student's Degree
+        # Add the Student's Degree to DB Session
         try:
             db_student_degree = models.StudentDegree(enrollment_year=student_degree.enrollment_year)
             db_student_degree.degree = db_degree
             db_student.degrees.append(db_student_degree)
             db.add(db_student)
-            db.commit()
-            db.refresh(db_student)
 
         # Raise exception if the Student is already enrolled to that Degree
         except IntegrityError:
+            db.rollback()
             raise HTTPException(status_code=400, \
                 detail=f'Student is already enrolled to {db_degree.name}.')
+    
+    # Save Degrees to database
+    db.commit()
+    db.refresh(db_student)
 
     # Save StudentSubject associations
     for student_subject in lead.subjects:
@@ -93,19 +96,22 @@ def create_lead(db: Session, lead: schemas.LeadCreate):
                 status_code=400,\
                 detail=f"Subject id {db_subject.id} doesn't belong to any of the student's degrees.")
 
-        # Save the Student's Subject
+        # Add the Student's Subject to DB Session
         try:
             db_student_subject = models.StudentSubject(attempt_number=student_subject.attempt_number)
             db_student_subject.subject = db_subject
             db_student.subjects.append(db_student_subject)
             db.add(db_student)
-            db.commit()
-            db.refresh(db_student)
 
         # Raise exception if the Student is already enrolled to that Subject
         except IntegrityError:
+            db.rollback()
             raise HTTPException(status_code=400, \
                 detail=f'Student is already enrolled to {db_subject.name}.')
+    
+    # Save Degrees to database
+    db.commit()
+    db.refresh(db_student)
 
     return db_student
 

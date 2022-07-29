@@ -2,6 +2,7 @@ version: '3.8'
 services:
   dataloader:
     container_name: dataloader-edmachina
+    restart: on-failure:3
     build: ./data_load
     depends_on:
       - postgres

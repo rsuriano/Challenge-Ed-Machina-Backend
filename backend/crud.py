@@ -17,6 +17,7 @@ def create_degree(db: Session, degree: schemas.DegreeCreate):
     
     # Catch duplicated Degree (name)
     except IntegrityError:
+        db.rollback()
         raise HTTPException(status_code=400, detail='Degree already exists.')
     
 
@@ -38,6 +39,7 @@ def create_subject(db: Session, subject: schemas.SubjectCreate):
 
         # Catch duplicated Subject (name)
         except IntegrityError:
+            db.rollback()
             raise HTTPException(status_code=400, detail='Subject name already exists.')
         
 
@@ -52,6 +54,7 @@ def create_lead(db: Session, lead: schemas.LeadCreate):
 
     # Catch duplicated Student
     except IntegrityError:
+        db.rollback()
         raise HTTPException(status_code=400, \
             detail=f'Student with email {lead.email} is already registered.')
     

@@ -49,6 +49,10 @@ def create_lead(lead: schemas.LeadCreate, db: Session = Depends(get_db)):
 
 @app.get("/leads/", response_model=list[schemas.Lead], tags=["leads"])
 def get_leads(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    if skip < 0:
+        raise HTTPException(status_code=400, detail="'skip' parameter must be positive")
+    if limit < 0:
+        raise HTTPException(status_code=400, detail="'limit' parameter must be positive")
     return crud.get_students(db, skip=skip, limit=limit)
 
 @app.get("/leads/{lead_id}", response_model=schemas.Lead, tags=["leads"])

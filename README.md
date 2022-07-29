@@ -1,7 +1,7 @@
 # Challenge Ed Machina - Backend
 
 Se requiere un proceso de registración de leads a procesar. Lo que se necesita registrar es la persona y las N materias que cursa en N carreras.
-
+A continuación se describen los endpoints y forma de uso de la api. Dentro del directorio `backend` se encuentra la [documentación técnica](backend).
 ## Instalación
 Para correr el proyecto, sobre el directorio se deben correr los siguientes comandos:
 

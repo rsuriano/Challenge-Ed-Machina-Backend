@@ -9,11 +9,11 @@ import models, schemas
 
 def create_degree(db: Session, degree: schemas.DegreeCreate):
     try:
-        db_degree = models.Degree(name=degree.name, length_years=degree.length_years)
-        db.add(db_degree)
+        degree = models.Degree(name=degree.name, length_years=degree.length_years)
+        db.add(degree)
         db.commit()
-        db.refresh(db_degree)
-        return db_degree
+        db.refresh(degree)
+        return degree
     
     # Catch duplicated Degree (name)
     except IntegrityError:
@@ -31,11 +31,11 @@ def create_subject(db: Session, subject: schemas.SubjectCreate):
     else:
         # Try to save new subject
         try:
-            db_subject = models.Subject(name=subject.name, total_hours=subject.total_hours, degree=db_degree)
-            db.add(db_subject)
+            subject = models.Subject(name=subject.name, total_hours=subject.total_hours, degree=db_degree)
+            db.add(subject)
             db.commit()
-            db.refresh(db_subject)
-            return db_subject
+            db.refresh(subject)
+            return subject
 
         # Catch duplicated Subject (name)
         except IntegrityError:
@@ -44,79 +44,74 @@ def create_subject(db: Session, subject: schemas.SubjectCreate):
         
 
 def create_lead(db: Session, lead: schemas.LeadCreate):
-    # Save basic Student data
-    try:
-        db_student = models.Student(\
-            name=lead.name, email=lead.email, address=lead.address, phone=lead.phone)
-        db.add(db_student)
-        db.commit()
-        db.refresh(db_student)
+    # Add Student data
+    student = models.Student(\
+        name=lead.name, email=lead.email, address=lead.address, phone=lead.phone)
+
+    db_student = get_student_by_email(db=db, student_email=lead.email)
 
     # Catch duplicated Student
-    except IntegrityError:
-        db.rollback()
+    if db_student is not None:
         raise HTTPException(status_code=400, \
             detail=f'Student with email {lead.email} is already registered.')
     
-    # Save StudentDegree associations
-    for student_degree in lead.degrees:
-        db_degree = get_degree_by_id(db, degree_id=student_degree.degree_id)
+    # Add StudentDegree associations
+    for student_degree_new in lead.degrees:
+        db_degree = get_degree_by_id(db, degree_id=student_degree_new.degree_id)
 
         # Raise exception if degree doesn't exist in DB
         if (db_degree is None):
             raise HTTPException(status_code=400, \
-                detail=f'Degree id {student_degree.degree_id} not found.')
+                detail=f'Degree id {student_degree_new.degree_id} not found.')
 
         # Add the Student's Degree to DB Session
         try:
-            db_student_degree = models.StudentDegree(enrollment_year=student_degree.enrollment_year)
-            db_student_degree.degree = db_degree
-            db_student.degrees.append(db_student_degree)
-            db.add(db_student)
+            student_degree = models.StudentDegree(enrollment_year=student_degree_new.enrollment_year)
+            student_degree.degree = db_degree
+            student.degrees.append(student_degree)
 
         # Raise exception if the Student is already enrolled to that Degree
         except IntegrityError:
-            db.rollback()
             raise HTTPException(status_code=400, \
                 detail=f'Student is already enrolled to {db_degree.name}.')
-    
-    # Save Degrees to database
-    db.commit()
-    db.refresh(db_student)
 
-    # Save StudentSubject associations
-    for student_subject in lead.subjects:
-        db_subject = get_subject_by_id(db, subject_id=student_subject.subject_id)
+    # Add StudentSubject associations
+    for student_subject_new in lead.subjects:
+        db_subject = get_subject_by_id(db, subject_id=student_subject_new.subject_id)
 
         # Raise exception if subject doesn't exist in DB
         if db_subject is None:
             raise HTTPException(status_code=400, \
-                detail=f'Subject id {db_subject.id} not found.')
+                detail=f'Subject id {student_subject_new.subject_id} not found.')
 
         # Check if Subject doesn't belong to any of the Student's enrolled Degrees
-        if db_subject.degree_id not in [degrees_list.degree.id for degrees_list in db_student.degrees]:
+        if db_subject.degree_id not in [degrees_list.degree.id for degrees_list in student.degrees]:
             raise HTTPException(\
                 status_code=400,\
-                detail=f"Subject id {db_subject.id} doesn't belong to any of the student's degrees.")
+                detail=f"Subject id {student_subject_new.subject_id} doesn't belong to any of the student's degrees.")
 
         # Add the Student's Subject to DB Session
         try:
-            db_student_subject = models.StudentSubject(attempt_number=student_subject.attempt_number)
-            db_student_subject.subject = db_subject
-            db_student.subjects.append(db_student_subject)
-            db.add(db_student)
+            student_subject = models.StudentSubject(attempt_number=student_subject_new.attempt_number)
+            student_subject.subject = db_subject
+            student.subjects.append(student_subject)
 
         # Raise exception if the Student is already enrolled to that Subject
         except IntegrityError:
-            db.rollback()
             raise HTTPException(status_code=400, \
                 detail=f'Student is already enrolled to {db_subject.name}.')
     
-    # Save Degrees to database
-    db.commit()
-    db.refresh(db_student)
+    # Save Student data to database
+    try:
+        db.add(student)
+        db.commit()
+        db.refresh(student)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, \
+                detail=f'Duplicated data in request.')
 
-    return db_student
+    return student
 
 
 ''' Get data from database '''
@@ -134,6 +129,10 @@ def get_subject_by_id(db: Session, subject_id: int):
 def get_subjects(db: Session):
     return db.query(models.Subject).all()
 
+
+def get_student_by_email(db: Session, student_email: str):
+    return db.query(models.Student)\
+        .where(models.Student.email == student_email).one_or_none()
 
 def get_student_by_id(db: Session, student_id: int):
     return db.query(models.Student)\

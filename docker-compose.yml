@@ -1,5 +1,11 @@
 version: '3.8'
 services:
+  dataloader:
+    container_name: dataloader-edmachina
+    build: ./data_load
+    depends_on:
+      - postgres
+      - app
   app:
     container_name: backend-edmachina
     restart: always

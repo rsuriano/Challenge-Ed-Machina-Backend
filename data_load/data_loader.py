@@ -138,4 +138,4 @@ if SessionLocal().query(Degree).all() == []:
         pass
 else:
     print('Database is not empty.')
-    print(SessionLocal().query(Degree).all())
+    #print(SessionLocal().query(Degree).all())
